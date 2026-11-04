@@ -1,0 +1,9 @@
+{
+  "projectId": "72501597",
+  "functions": {
+    "admin-delete-profile": {
+      "hasChanged": false,
+      "hash": "61138f88c29d2c19ed8b59fcc3d116d80e6c8438372079cd2abfd17f85f480f0"
+    }
+  }
+}
