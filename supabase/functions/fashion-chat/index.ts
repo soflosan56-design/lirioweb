@@ -6,6 +6,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Info, Apikey",
 };
 
+const GEMINI_CHAT_URL = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions";
 const MAX_MESSAGES = 12;
 const MAX_MESSAGE_LENGTH = 800;
 const MAX_REPLY_LENGTH = 2000;
@@ -54,7 +55,7 @@ Deno.serve(async (req: Request) => {
       return jsonResponse({ error: "Tienes que iniciar sesión para usar el chat." }, 401);
     }
 
-    const apiKey = Deno.env.get("OPENROUTER_API_KEY");
+    const apiKey = Deno.env.get("GEMINI_API_KEY");
     if (!apiKey) {
       return jsonResponse({ error: "El chat todavía no está configurado. Avisa a la administración." }, 503);
     }
@@ -85,16 +86,15 @@ Deno.serve(async (req: Request) => {
     if (settingsError) {
       return jsonResponse({ error: "No se pudo preparar el chat. Inténtalo de nuevo." }, 500);
     }
-    const model = (settings as { model: string } | null)?.model ?? "openrouter/free";
+    const model = (settings as { model: string } | null)?.model ?? "gemini-2.5-flash";
 
     let aiRes: Response;
     try {
-      aiRes = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      aiRes = await fetch(GEMINI_CHAT_URL, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${apiKey}`,
           "Content-Type": "application/json",
-          "X-Title": "Lirio",
         },
         body: JSON.stringify({
           model,

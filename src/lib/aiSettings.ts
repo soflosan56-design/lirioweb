@@ -1,7 +1,7 @@
 import { assertNoError } from '@/lib/api';
 import { supabase } from '@/lib/supabase';
 
-export const AI_MODELS = ['openrouter/free'] as const;
+export const AI_MODELS = ['gemini-2.5-flash'] as const;
 export type AiModel = (typeof AI_MODELS)[number];
 
 export const MAX_AI_INSTRUCTIONS_LENGTH = 2000;

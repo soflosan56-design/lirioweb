@@ -6,6 +6,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Info, Apikey",
 };
 
+const GEMINI_CHAT_URL = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions";
 const MAX_RECOMMENDATIONS = 5;
 const MAX_WARDROBE_ITEMS = 60;
 const MAX_SWAP_CANDIDATES = 40;
@@ -75,7 +76,7 @@ Deno.serve(async (req: Request) => {
       return jsonResponse({ error: "Tienes que iniciar sesión." }, 401);
     }
 
-    const apiKey = Deno.env.get("OPENROUTER_API_KEY");
+    const apiKey = Deno.env.get("GEMINI_API_KEY");
     if (!apiKey) {
       return jsonResponse({ error: "El recomendador todavía no está configurado. Avisa a la administración." }, 503);
     }
@@ -129,7 +130,7 @@ Deno.serve(async (req: Request) => {
       .filter((row): row is SwapRow => row !== null);
     const candidates = (candidatesRes.data ?? []) as SwapRow[];
     const settings = settingsRes.data as { model: string; instructions: string } | null;
-    const model = settings?.model ?? "openrouter/free";
+    const model = settings?.model ?? "gemini-2.5-flash";
     const instructions = settings?.instructions ?? "";
 
     if (wardrobe.length === 0 && favorites.length === 0) {
@@ -158,12 +159,11 @@ Deno.serve(async (req: Request) => {
 
     let aiRes: Response;
     try {
-      aiRes = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      aiRes = await fetch(GEMINI_CHAT_URL, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${apiKey}`,
           "Content-Type": "application/json",
-          "X-Title": "Lirio",
         },
         body: JSON.stringify({
           model,
