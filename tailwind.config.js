@@ -69,7 +69,7 @@ export default {
       animation: {
         marquee: 'marquee 22s linear infinite',
         wiggle: 'wiggle 2.4s ease-in-out infinite',
-        'pop-in': 'pop-in 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) both',
+        'pop-in': 'pop-in 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) backwards',
       },
     },
   },

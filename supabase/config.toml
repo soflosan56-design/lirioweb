@@ -1,2 +1,8 @@
 [functions.admin-delete-profile]
 verify_jwt = true
+
+[functions.style-recommender]
+verify_jwt = true
+
+[functions.web-search]
+verify_jwt = true

@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
-import { MessageCircle, Trash2 } from 'lucide-react';
+import { Heart, MessageCircle, Trash2 } from 'lucide-react';
 import Modal from '@/components/ui/Modal';
 import BidCard from '@/components/swap/BidCard';
 import BidForm from '@/components/swap/BidForm';
 import GarmentDetailsView from '@/components/swap/GarmentDetailsView';
 import PhotoGallery from '@/components/swap/PhotoGallery';
 import { deleteListing, fetchBids, sendMessage } from '@/lib/api';
+import { addFavoriteListing, fetchFavoriteListingIds, removeFavoriteListing } from '@/lib/favoritesApi';
 import { formatValue } from '@/lib/format';
 import type { SwapBid, SwapListing } from '@/lib/types';
 
@@ -36,6 +37,19 @@ export default function ListingDetailModal({ listing, userId, onClose, onRequire
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
+  const [favorite, setFavorite] = useState<boolean | null>(null);
+  const [favoriteBusy, setFavoriteBusy] = useState(false);
+
+  useEffect(() => {
+    if (!userId) return;
+    let cancelled = false;
+    fetchFavoriteListingIds(userId)
+      .then((ids) => !cancelled && setFavorite(ids.includes(listing.id)))
+      .catch((err: Error) => !cancelled && onNotify(err.message, 'error'));
+    return () => {
+      cancelled = true;
+    };
+  }, [userId, listing.id, onNotify]);
 
   useEffect(() => {
     let cancelled = false;
@@ -62,6 +76,26 @@ export default function ListingDetailModal({ listing, userId, onClose, onRequire
       onNotify('Puja enviada al dueño por el chat', 'success');
     } catch {
       onNotify('Tu puja está registrada, pero no se pudo avisar al dueño por el chat', 'error');
+    }
+  }
+
+  async function toggleFavorite() {
+    if (!userId || favorite === null || favoriteBusy) return;
+    setFavoriteBusy(true);
+    try {
+      if (favorite) {
+        await removeFavoriteListing(userId, listing.id);
+        setFavorite(false);
+        onNotify('Quitada de tus favoritos', 'success');
+      } else {
+        await addFavoriteListing(listing.id);
+        setFavorite(true);
+        onNotify('Guardada en tus favoritos', 'success');
+      }
+    } catch (err) {
+      onNotify(err instanceof Error ? err.message : 'No se pudo actualizar el favorito', 'error');
+    } finally {
+      setFavoriteBusy(false);
     }
   }
 
@@ -99,6 +133,18 @@ export default function ListingDetailModal({ listing, userId, onClose, onRequire
           {!showForm && !isOwner && (
             <button type="button" onClick={() => (userId ? setShowForm(true) : onRequireLogin())} className="scrap-button w-full bg-pink-500 px-5 py-3 text-xl text-ink-900 hover:bg-pink-300">
               Hacer una puja
+            </button>
+          )}
+
+          {!isOwner && userId && (
+            <button
+              type="button"
+              onClick={toggleFavorite}
+              disabled={favorite === null || favoriteBusy}
+              className="scrap-button w-full bg-white px-5 py-3 text-lg text-ink-900 hover:bg-yellow-100 disabled:opacity-60"
+            >
+              <Heart className={`h-5 w-5 ${favorite ? 'fill-pink-500 text-pink-500' : ''}`} />
+              {favorite ? 'Quitar de favoritos' : 'Guardar en favoritos'}
             </button>
           )}
 

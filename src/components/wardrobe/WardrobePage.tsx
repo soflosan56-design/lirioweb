@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
-import { ArrowLeft, Loader2, MessageCircle, Pencil, Plus, Trash2 } from 'lucide-react';
+import { ArrowLeft, Loader2, MessageCircle, Pencil, Plus, Sparkles, Trash2 } from 'lucide-react';
 import Modal from '@/components/ui/Modal';
 import GarmentDetailsView from '@/components/swap/GarmentDetailsView';
 import ListingDetailModal from '@/components/swap/ListingDetailModal';
 import MessageThread from '@/components/messages/MessageThread';
+import StyleRecommenderModal from '@/components/wardrobe/StyleRecommenderModal';
 import WardrobeItemModal from '@/components/wardrobe/WardrobeItemModal';
 import { getOrCreateListingForWardrobeItem } from '@/lib/api';
 import { deleteWardrobeItem, fetchProfile, fetchWardrobeItems } from '@/lib/wardrobeApi';
@@ -26,6 +27,7 @@ export default function WardrobePage({ ownerId, viewerId, onBack, onNotify }: Wa
   const [openingListing, setOpeningListing] = useState(false);
   const [openedListing, setOpenedListing] = useState<SwapListing | null>(null);
   const [conversation, setConversation] = useState<ConversationTarget | null>(null);
+  const [recommenderOpen, setRecommenderOpen] = useState(false);
 
   const isOwner = viewerId === ownerId;
 
@@ -124,14 +126,24 @@ export default function WardrobePage({ ownerId, viewerId, onBack, onNotify }: Wa
               </div>
             </div>
             {isOwner && (
-              <button
-                type="button"
-                onClick={() => setEditing('new')}
-                className="scrap-button self-start bg-yellow-500 px-5 py-2.5 text-lg text-ink-900 hover:bg-yellow-300 sm:self-auto"
-              >
-                <Plus className="h-5 w-5" />
-                Añadir prenda
-              </button>
+              <div className="flex flex-wrap gap-3 self-start sm:self-auto">
+                <button
+                  type="button"
+                  onClick={() => setRecommenderOpen(true)}
+                  className="scrap-button bg-white px-5 py-2.5 text-lg text-ink-900 hover:bg-yellow-100"
+                >
+                  <Sparkles className="h-5 w-5" />
+                  Recomendaciones
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setEditing('new')}
+                  className="scrap-button bg-yellow-500 px-5 py-2.5 text-lg text-ink-900 hover:bg-yellow-300"
+                >
+                  <Plus className="h-5 w-5" />
+                  Añadir prenda
+                </button>
+              </div>
             )}
           </header>
 
@@ -238,6 +250,8 @@ export default function WardrobePage({ ownerId, viewerId, onBack, onNotify }: Wa
           onSaved={handleSaved}
         />
       )}
+
+      {recommenderOpen && isOwner && <StyleRecommenderModal onClose={() => setRecommenderOpen(false)} />}
     </div>
   );
 }

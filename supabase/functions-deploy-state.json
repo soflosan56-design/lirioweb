@@ -4,6 +4,14 @@
     "admin-delete-profile": {
       "hasChanged": false,
       "hash": "61138f88c29d2c19ed8b59fcc3d116d80e6c8438372079cd2abfd17f85f480f0"
+    },
+    "style-recommender": {
+      "hasChanged": false,
+      "hash": "44f36839524071bed2c9835bbe36168c51acc903946c49a72bf440ff25c767f2"
+    },
+    "web-search": {
+      "hasChanged": false,
+      "hash": "b5c2b544b41a1dc9b7d9153337fc3cd0c77ec74e9ac06a3dc15df5fbf4c4b039"
     }
   }
 }
