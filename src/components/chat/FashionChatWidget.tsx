@@ -14,6 +14,13 @@ const GREETING: FashionChatMessage = {
   content: 'Hola, soy el asistente de LIRIO. Pregúntame sobre moda, cómo combinar una prenda o cómo funciona el Swap.',
 };
 
+const SUGGESTED_PROMPTS = [
+  '¿Cuáles son las tendencias de moda sostenible de esta temporada?',
+  '¿Qué novedades hay ahora mismo en la industria de la moda?',
+  '¿Cómo se combina una chaqueta de cuero en un look de día?',
+  '¿Qué marcas de moda de segunda mano están creciendo últimamente?',
+];
+
 export default function FashionChatWidget({ signedIn, onRequireLogin }: FashionChatWidgetProps) {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<FashionChatMessage[]>([GREETING]);
@@ -34,9 +41,7 @@ export default function FashionChatWidget({ signedIn, onRequireLogin }: FashionC
     setOpen((value) => !value);
   }
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const content = draft.trim();
+  async function sendMessage(content: string) {
     if (!content || pending) return;
 
     const next: FashionChatMessage[] = [...messages, { role: 'user', content }];
@@ -53,6 +58,13 @@ export default function FashionChatWidget({ signedIn, onRequireLogin }: FashionC
       setPending(false);
     }
   }
+
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    void sendMessage(draft.trim());
+  }
+
+  const showSuggestions = messages.length === 1 && !pending;
 
   return (
     <div className="fixed bottom-4 right-4 z-40 flex flex-col items-end gap-3 sm:bottom-6 sm:right-6">
@@ -86,6 +98,23 @@ export default function FashionChatWidget({ signedIn, onRequireLogin }: FashionC
                 </p>
               </div>
             ))}
+            {showSuggestions && (
+              <div className="space-y-2 pt-1">
+                <p className="font-hand text-base text-pink-700">Prueba con una pregunta:</p>
+                <div className="flex flex-col items-start gap-2">
+                  {SUGGESTED_PROMPTS.map((prompt) => (
+                    <button
+                      key={prompt}
+                      type="button"
+                      onClick={() => void sendMessage(prompt)}
+                      className="border-2 border-ink-900 bg-white px-3 py-1.5 text-left text-sm text-ink-900 transition-colors hover:bg-neon-300 focus:outline-none focus:ring-4 focus:ring-yellow-300"
+                    >
+                      {prompt}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
             {pending && (
               <div className="flex justify-start">
                 <p className="flex items-center gap-2 border-2 border-ink-900 bg-white px-3 py-2 text-sm text-ink-700">
