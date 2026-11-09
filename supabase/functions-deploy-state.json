@@ -5,6 +5,10 @@
       "hasChanged": false,
       "hash": "61138f88c29d2c19ed8b59fcc3d116d80e6c8438372079cd2abfd17f85f480f0"
     },
+    "fashion-chat": {
+      "hasChanged": false,
+      "hash": "69ec9eb96ea44769922e81e69367127e6c8efa8193b7f28955ebc603a73db889"
+    },
     "style-recommender": {
       "hasChanged": false,
       "hash": "901dceca7cbd09c7611d297f855b8690e7fb440736c080f39ac6f1aadb8dea51"
@@ -13,9 +17,9 @@
       "hasChanged": false,
       "hash": "b5c2b544b41a1dc9b7d9153337fc3cd0c77ec74e9ac06a3dc15df5fbf4c4b039"
     },
-    "fashion-chat": {
+    "fashion-news": {
       "hasChanged": false,
-      "hash": "69ec9eb96ea44769922e81e69367127e6c8efa8193b7f28955ebc603a73db889"
+      "hash": "8c106cc7b8bca7e40ee970fe3717614cfe4b9419c8babf626369642fd1b4fd1c"
     }
   }
 }
