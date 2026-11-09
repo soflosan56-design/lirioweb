@@ -12,6 +12,7 @@ import WardrobePage from '@/components/wardrobe/WardrobePage';
 import AuthModal from '@/components/auth/AuthModal';
 import CartDrawer from '@/components/cart/CartDrawer';
 import ProfileModal from '@/components/profile/ProfileModal';
+import FashionChatWidget from '@/components/chat/FashionChatWidget';
 import Toast, { type ToastState } from '@/components/ui/Toast';
 import { useAccount } from '@/hooks/useAccount';
 import { useCart } from '@/hooks/useCart';
@@ -166,6 +167,8 @@ export default function App() {
           onNotify={notify}
         />
       )}
+
+      <FashionChatWidget signedIn={userId !== null} onRequireLogin={requireLogin} />
 
       <Toast toast={toast} onDismiss={dismissToast} />
     </div>
