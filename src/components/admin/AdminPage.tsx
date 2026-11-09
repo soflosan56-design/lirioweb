@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { ShieldCheck } from 'lucide-react';
 import AdminEntityPanel from '@/components/admin/AdminEntityPanel';
 import AdminProfilesPanel from '@/components/admin/AdminProfilesPanel';
+import AiSettingsPanel from '@/components/admin/AiSettingsPanel';
 import SiteSettingsEditor from '@/components/admin/site/SiteSettingsEditor';
 import { fetchBrands } from '@/lib/api';
 import { getEntities } from '@/lib/adminEntities';
@@ -9,6 +10,7 @@ import type { Brand, SiteSettings } from '@/lib/types';
 
 const SITE_TAB_KEY = 'site';
 const PROFILES_TAB_KEY = 'profiles';
+const AI_TAB_KEY = 'ai';
 
 type AdminPageProps = {
   ownerId: string;
@@ -41,6 +43,7 @@ export default function AdminPage({ ownerId, settings, onSettingsSaved, onNotify
     ...entities.map((entity) => ({ key: entity.key, tabLabel: entity.tabLabel })),
     { key: SITE_TAB_KEY, tabLabel: 'Estética y textos' },
     { key: PROFILES_TAB_KEY, tabLabel: 'Perfiles' },
+    { key: AI_TAB_KEY, tabLabel: 'Recomendador IA' },
   ];
   const active = tabs.find((tab) => tab.key === activeKey) ?? tabs[0];
   const activeEntity = entities.find((entity) => entity.key === active.key);
@@ -62,7 +65,7 @@ export default function AdminPage({ ownerId, settings, onSettingsSaved, onNotify
         </p>
       </header>
 
-      <div role="tablist" aria-label="Secciones del panel" className="grid grid-cols-1 border-2 border-ink-900 sm:grid-cols-5">
+      <div role="tablist" aria-label="Secciones del panel" className="grid grid-cols-1 border-2 border-ink-900 sm:auto-cols-fr sm:grid-flow-col">
         {tabs.map((tab) => {
           const selected = tab.key === active.key;
           return (
@@ -86,6 +89,8 @@ export default function AdminPage({ ownerId, settings, onSettingsSaved, onNotify
         <AdminEntityPanel key={activeEntity.key} entity={activeEntity} ownerId={ownerId} onNotify={onNotify} />
       ) : active.key === PROFILES_TAB_KEY ? (
         <AdminProfilesPanel ownerId={ownerId} onNotify={onNotify} />
+      ) : active.key === AI_TAB_KEY ? (
+        <AiSettingsPanel onNotify={onNotify} />
       ) : (
         <SiteSettingsEditor
           ownerId={ownerId}
