@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import ArticleFanzine from '@/components/content/ArticleFanzine';
 import ArticleReader from '@/components/content/ArticleReader';
-import FashionNewsStrip from '@/components/content/FashionNewsStrip';
 import PodcastCollage from '@/components/content/PodcastCollage';
 import VideoPlayer from '@/components/content/VideoPlayer';
 import { fetchContent } from '@/lib/api';
@@ -96,8 +95,6 @@ export default function ContentPage() {
           <ArticleFanzine articles={articles} onOpen={setOpenArticle} />
         </section>
       )}
-
-      <FashionNewsStrip />
 
       {openArticle && <ArticleReader article={openArticle} onClose={() => setOpenArticle(null)} />}
     </div>

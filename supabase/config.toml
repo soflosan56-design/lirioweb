@@ -4,9 +4,6 @@ verify_jwt = true
 [functions.fashion-chat]
 verify_jwt = true
 
-[functions.fashion-news]
-verify_jwt = false
-
 [functions.style-recommender]
 verify_jwt = true
 
