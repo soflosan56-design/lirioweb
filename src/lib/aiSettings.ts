@@ -1,7 +1,7 @@
 import { assertNoError } from '@/lib/api';
 import { supabase } from '@/lib/supabase';
 
-export const AI_MODELS = ['gpt-4o-mini', 'gpt-4o', 'gpt-4.1-mini', 'gpt-4.1'] as const;
+export const AI_MODELS = ['openrouter/free'] as const;
 export type AiModel = (typeof AI_MODELS)[number];
 
 export const MAX_AI_INSTRUCTIONS_LENGTH = 2000;

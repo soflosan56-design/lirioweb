@@ -75,7 +75,7 @@ Deno.serve(async (req: Request) => {
       return jsonResponse({ error: "Tienes que iniciar sesión." }, 401);
     }
 
-    const apiKey = Deno.env.get("OPENAI_API_KEY");
+    const apiKey = Deno.env.get("OPENROUTER_API_KEY");
     if (!apiKey) {
       return jsonResponse({ error: "El recomendador todavía no está configurado. Avisa a la administración." }, 503);
     }
@@ -129,7 +129,7 @@ Deno.serve(async (req: Request) => {
       .filter((row): row is SwapRow => row !== null);
     const candidates = (candidatesRes.data ?? []) as SwapRow[];
     const settings = settingsRes.data as { model: string; instructions: string } | null;
-    const model = settings?.model ?? "gpt-4o-mini";
+    const model = settings?.model ?? "openrouter/free";
     const instructions = settings?.instructions ?? "";
 
     if (wardrobe.length === 0 && favorites.length === 0) {
@@ -156,9 +156,13 @@ Deno.serve(async (req: Request) => {
       "Usa solo ids que aparezcan en los datos. Si no hay una prenda adecuada, deja la lista vacía.",
     ].join("\n");
 
-    const openAiRes = await fetch("https://api.openai.com/v1/chat/completions", {
+    const aiRes = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
-      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+        "X-Title": "Lirio",
+      },
       body: JSON.stringify({
         model,
         response_format: { type: "json_object" },
@@ -169,11 +173,11 @@ Deno.serve(async (req: Request) => {
       }),
     });
 
-    if (!openAiRes.ok) {
+    if (!aiRes.ok) {
       return jsonResponse({ error: "El recomendador no pudo responder en este momento. Inténtalo de nuevo." }, 502);
     }
 
-    const completion = await openAiRes.json().catch(() => null);
+    const completion = await aiRes.json().catch(() => null);
     const content = completion?.choices?.[0]?.message?.content;
     if (typeof content !== "string") {
       return jsonResponse({ error: "El recomendador devolvió una respuesta vacía." }, 502);
