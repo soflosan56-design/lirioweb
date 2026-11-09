@@ -156,22 +156,28 @@ Deno.serve(async (req: Request) => {
       "Usa solo ids que aparezcan en los datos. Si no hay una prenda adecuada, deja la lista vacía.",
     ].join("\n");
 
-    const aiRes = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-        "X-Title": "Lirio",
-      },
-      body: JSON.stringify({
-        model,
-        response_format: { type: "json_object" },
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: JSON.stringify(context) },
-        ],
-      }),
-    });
+    let aiRes: Response;
+    try {
+      aiRes = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+          "X-Title": "Lirio",
+        },
+        body: JSON.stringify({
+          model,
+          response_format: { type: "json_object" },
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: JSON.stringify(context) },
+          ],
+        }),
+        signal: AbortSignal.timeout(60_000),
+      });
+    } catch {
+      return jsonResponse({ error: "El recomendador tardó demasiado en responder. Inténtalo de nuevo." }, 504);
+    }
 
     if (!aiRes.ok) {
       return jsonResponse({ error: "El recomendador no pudo responder en este momento. Inténtalo de nuevo." }, 502);
