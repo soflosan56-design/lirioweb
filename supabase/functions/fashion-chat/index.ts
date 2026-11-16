@@ -150,7 +150,18 @@ Deno.serve(async (req: Request) => {
     }
 
     if (!aiRes.ok) {
-      return jsonResponse({ error: "El chat no pudo responder en este momento. Inténtalo de nuevo." }, 502);
+      const detail = await aiRes.text().catch(() => "");
+      let reason = "";
+      try {
+        const parsed = JSON.parse(detail) as { error?: { message?: string } | string };
+        reason = typeof parsed?.error === "string" ? parsed.error : parsed?.error?.message ?? "";
+      } catch {
+        reason = detail.slice(0, 300);
+      }
+      return jsonResponse(
+        { error: `El chat no pudo responder en este momento (Gemini devolvió ${aiRes.status}${reason ? `: ${reason}` : ""}). Inténtalo de nuevo.` },
+        502
+      );
     }
 
     const completion = await aiRes.json().catch(() => null);
