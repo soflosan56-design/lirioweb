@@ -6,7 +6,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Info, Apikey",
 };
 
-const GEMINI_CHAT_URL = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions";
+const GEMINI_API_BASE = "https://generativelanguage.googleapis.com/v1beta/models";
 const MAX_MESSAGES = 12;
 const MAX_MESSAGE_LENGTH = 800;
 const MAX_REPLY_LENGTH = 2000;
@@ -133,15 +133,18 @@ Deno.serve(async (req: Request) => {
 
     let aiRes: Response;
     try {
-      aiRes = await fetch(GEMINI_CHAT_URL, {
+      aiRes = await fetch(`${GEMINI_API_BASE}/${encodeURIComponent(model)}:generateContent`, {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${apiKey}`,
+          "x-goog-api-key": apiKey,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model,
-          messages: [...systemMessages, ...messages],
+          systemInstruction: { parts: [{ text: systemMessages.map((m) => m.content).join("\n\n") }] },
+          contents: messages.map((m) => ({
+            role: m.role === "assistant" ? "model" : "user",
+            parts: [{ text: m.content }],
+          })),
         }),
         signal: AbortSignal.timeout(60_000),
       });
@@ -165,7 +168,13 @@ Deno.serve(async (req: Request) => {
     }
 
     const completion = await aiRes.json().catch(() => null);
-    const content = completion?.choices?.[0]?.message?.content;
+    const candidate = completion?.candidates?.[0];
+    const content = Array.isArray(candidate?.content?.parts)
+      ? candidate.content.parts
+          .filter((part: { text?: unknown }) => typeof part?.text === "string")
+          .map((part: { text: string }) => part.text)
+          .join("")
+      : undefined;
     if (typeof content !== "string" || content.trim() === "") {
       return jsonResponse({ error: "El chat devolvió una respuesta vacía. Inténtalo de nuevo." }, 502);
     }

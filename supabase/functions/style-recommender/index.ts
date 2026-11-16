@@ -6,7 +6,7 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Info, Apikey",
 };
 
-const GEMINI_CHAT_URL = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions";
+const GEMINI_API_BASE = "https://generativelanguage.googleapis.com/v1beta/models";
 const MAX_RECOMMENDATIONS = 5;
 const MAX_WARDROBE_ITEMS = 60;
 const MAX_SWAP_CANDIDATES = 40;
@@ -159,19 +159,16 @@ Deno.serve(async (req: Request) => {
 
     let aiRes: Response;
     try {
-      aiRes = await fetch(GEMINI_CHAT_URL, {
+      aiRes = await fetch(`${GEMINI_API_BASE}/${encodeURIComponent(model)}:generateContent`, {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${apiKey}`,
+          "x-goog-api-key": apiKey,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model,
-          response_format: { type: "json_object" },
-          messages: [
-            { role: "system", content: systemPrompt },
-            { role: "user", content: JSON.stringify(context) },
-          ],
+          systemInstruction: { parts: [{ text: systemPrompt }] },
+          contents: [{ role: "user", parts: [{ text: JSON.stringify(context) }] }],
+          generationConfig: { responseMimeType: "application/json" },
         }),
         signal: AbortSignal.timeout(60_000),
       });
@@ -184,7 +181,13 @@ Deno.serve(async (req: Request) => {
     }
 
     const completion = await aiRes.json().catch(() => null);
-    const content = completion?.choices?.[0]?.message?.content;
+    const candidate = completion?.candidates?.[0];
+    const content = Array.isArray(candidate?.content?.parts)
+      ? candidate.content.parts
+          .filter((part: { text?: unknown }) => typeof part?.text === "string")
+          .map((part: { text: string }) => part.text)
+          .join("")
+      : undefined;
     if (typeof content !== "string") {
       return jsonResponse({ error: "El recomendador devolvió una respuesta vacía." }, 502);
     }
