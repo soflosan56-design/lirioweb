@@ -1,4 +1,4 @@
-import { Scissors, ShieldCheck, ShoppingBag, User } from 'lucide-react';
+import { Inbox, Scissors, ShieldCheck, ShoppingBag, User } from 'lucide-react';
 import type { Section } from '@/lib/types';
 
 const LINKS: { id: Section; label: string }[] = [
@@ -18,8 +18,10 @@ type NavbarProps = {
   profileName: string | null;
   logoUrl: string;
   isAdmin: boolean;
+  unreadMessages: number;
   onOpenCart: () => void;
   onOpenProfile: () => void;
+  onOpenMessages: () => void;
 };
 
 export default function Navbar({
@@ -29,8 +31,10 @@ export default function Navbar({
   profileName,
   logoUrl,
   isAdmin,
+  unreadMessages,
   onOpenCart,
   onOpenProfile,
+  onOpenMessages,
 }: NavbarProps) {
   return (
     <header className="sticky top-0 z-40 border-b-4 border-ink-900 bg-paper-50/95 backdrop-blur">
@@ -107,6 +111,22 @@ export default function Navbar({
               <span className="hidden sm:inline">Admin</span>
             </button>
           )}
+          {profileName ? (
+            <button
+              type="button"
+              onClick={onOpenMessages}
+              className="scrap-button relative bg-paper-50 px-3 py-2 text-base text-ink-900 hover:bg-neon-300"
+              aria-label="Abrir mensajes"
+            >
+              <Inbox className="h-4 w-4" />
+              <span className="hidden sm:inline">Mensajes</span>
+              {unreadMessages > 0 && (
+                <span className="absolute -right-2 -top-2 flex h-6 min-w-[1.5rem] items-center justify-center border-2 border-ink-900 bg-pink-500 px-1 font-display text-sm text-ink-900">
+                  {unreadMessages}
+                </span>
+              )}
+            </button>
+          ) : null}
           <button
             type="button"
             onClick={onOpenProfile}

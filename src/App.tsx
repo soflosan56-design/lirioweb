@@ -12,25 +12,31 @@ import WardrobePage from '@/components/wardrobe/WardrobePage';
 import AuthModal from '@/components/auth/AuthModal';
 import CartDrawer from '@/components/cart/CartDrawer';
 import ProfileModal from '@/components/profile/ProfileModal';
+import InboxModal from '@/components/messages/InboxModal';
+import MessageThread from '@/components/messages/MessageThread';
 import FashionChatWidget from '@/components/chat/FashionChatWidget';
 import Toast, { type ToastState } from '@/components/ui/Toast';
 import { useAccount } from '@/hooks/useAccount';
 import { useCart } from '@/hooks/useCart';
 import { useIsAdmin } from '@/hooks/useAdmin';
 import { useSiteSettings } from '@/hooks/useSiteSettings';
-import type { CartMode, Product, Section } from '@/lib/types';
+import { useUnreadMessages, markInboxSeen } from '@/hooks/useUnreadMessages';
+import type { CartMode, ConversationTarget, Product, Section } from '@/lib/types';
 
 export default function App() {
   const [section, setSection] = useState<Section>('inicio');
   const [authOpen, setAuthOpen] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [inboxOpen, setInboxOpen] = useState(false);
+  const [conversation, setConversation] = useState<ConversationTarget | null>(null);
   const [toast, setToast] = useState<ToastState | null>(null);
   const [wardrobeOwnerId, setWardrobeOwnerId] = useState<string | null>(null);
 
   const { user, profile, error: accountError, signIn, signUp, signOut, saveProfile } = useAccount();
   const userId = user?.id ?? null;
   const cart = useCart(userId);
+  const unreadMessages = useUnreadMessages(userId);
   const isAdmin = useIsAdmin(userId);
   const { settings, setSettings } = useSiteSettings();
 
@@ -64,6 +70,15 @@ export default function App() {
     else setAuthOpen(true);
   }, [userId]);
 
+  const openMessages = useCallback(() => {
+    if (!userId) {
+      setAuthOpen(true);
+      return;
+    }
+    markInboxSeen();
+    setInboxOpen(true);
+  }, [userId]);
+
   const addToCart = useCallback(
     async (product: Product, mode: CartMode): Promise<'added' | 'exists' | 'signed_out'> => {
       if (!userId) {
@@ -86,8 +101,10 @@ export default function App() {
         profileName={profile?.display_name ?? null}
         logoUrl={settings.theme.logoUrl}
         isAdmin={isAdmin}
+        unreadMessages={unreadMessages}
         onOpenCart={openCart}
         onOpenProfile={openProfile}
+        onOpenMessages={openMessages}
       />
 
       {accountError && (
@@ -166,6 +183,21 @@ export default function App() {
           }}
           onNotify={notify}
         />
+      )}
+
+      {inboxOpen && userId && (
+        <InboxModal
+          meId={userId}
+          onClose={() => setInboxOpen(false)}
+          onOpen={(target) => {
+            setInboxOpen(false);
+            setConversation(target);
+          }}
+        />
+      )}
+
+      {conversation && userId && (
+        <MessageThread target={conversation} meId={userId} onClose={() => setConversation(null)} />
       )}
 
       <FashionChatWidget signedIn={userId !== null} onRequireLogin={requireLogin} />
