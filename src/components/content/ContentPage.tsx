@@ -4,6 +4,7 @@ import ArticleReader from '@/components/content/ArticleReader';
 import PodcastCollage from '@/components/content/PodcastCollage';
 import VideoPlayer from '@/components/content/VideoPlayer';
 import { fetchContent } from '@/lib/api';
+import { parseContentHash } from '@/lib/share';
 import type { ContentItem } from '@/lib/types';
 
 type Filter = 'todos' | 'podcast' | 'articulo';
@@ -24,8 +25,19 @@ export default function ContentPage() {
 
   useEffect(() => {
     let cancelled = false;
+    const applyItems = (data: ContentItem[]) => {
+      if (cancelled) return;
+      setItems(data);
+      const sharedSlug = parseContentHash(window.location.hash);
+      if (sharedSlug) {
+        const shared = data.find((item) => item.slug === sharedSlug);
+        if (shared?.kind === 'article') setOpenArticle(shared);
+        if (shared?.kind === 'podcast') setActiveEpisodeId(shared.id);
+        if (shared) history.replaceState(null, '', window.location.pathname);
+      }
+    };
     fetchContent()
-      .then((data) => !cancelled && setItems(data))
+      .then(applyItems)
       .catch((err: Error) => !cancelled && setError(err.message))
       .finally(() => !cancelled && setLoading(false));
     return () => {
@@ -75,7 +87,7 @@ export default function ContentPage() {
         <section aria-label="Podcasts" className="mb-20">
           <div className="mb-8 grid gap-10 lg:grid-cols-12">
             <div className="lg:col-span-8">
-              <VideoPlayer episode={activeEpisode} />
+              <VideoPlayer episode={activeEpisode} shareUrl={`${window.location.origin}${window.location.pathname}#/contenido/${encodeURIComponent(activeEpisode.slug)}`} />
             </div>
             <div className="lg:col-span-4">
               <h2 className="mb-4 font-display text-3xl uppercase">Más episodios</h2>
@@ -96,7 +108,13 @@ export default function ContentPage() {
         </section>
       )}
 
-      {openArticle && <ArticleReader article={openArticle} onClose={() => setOpenArticle(null)} />}
+      {openArticle && (
+        <ArticleReader
+          article={openArticle}
+          shareUrl={`${window.location.origin}${window.location.pathname}#/contenido/${encodeURIComponent(openArticle.slug)}`}
+          onClose={() => setOpenArticle(null)}
+        />
+      )}
     </div>
   );
 }

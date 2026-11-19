@@ -1,11 +1,14 @@
 import { useCallback, useEffect, useState } from 'react';
 import { FileDown, Loader2, Send, Trash2 } from 'lucide-react';
+import ShareMenu from '@/components/content/ShareMenu';
+import { contentShareUrl } from '@/lib/share';
 import type { ArticleBlock, ContentComment, ContentItem } from '@/lib/types';
 import { createComment, deleteComment, fetchComments } from '@/lib/api';
 import { useAccount } from '@/hooks/useAccount';
 
 type ArticleReaderProps = {
   article: ContentItem;
+  shareUrl: string;
   onClose: () => void;
 };
 
@@ -178,7 +181,7 @@ function BlockView({ block, isFirstParagraph }: { block: ArticleBlock; isFirstPa
   );
 }
 
-export default function ArticleReader({ article, onClose }: ArticleReaderProps) {
+export default function ArticleReader({ article, shareUrl, onClose }: ArticleReaderProps) {
   useEffect(() => {
     window.scrollTo({ top: 0 });
     document.body.style.overflow = 'hidden';
@@ -207,6 +210,7 @@ export default function ArticleReader({ article, onClose }: ArticleReaderProps) 
               Descargar documento
             </a>
           )}
+          <ShareMenu title={article.title} url={shareUrl} />
           <button
             type="button"
             onClick={onClose}

@@ -1,11 +1,13 @@
 import { Play } from 'lucide-react';
+import ShareMenu from '@/components/content/ShareMenu';
 import type { ContentItem } from '@/lib/types';
 
 type VideoPlayerProps = {
   episode: ContentItem;
+  shareUrl: string;
 };
 
-export default function VideoPlayer({ episode }: VideoPlayerProps) {
+export default function VideoPlayer({ episode, shareUrl }: VideoPlayerProps) {
   return (
     <div className="relative">
       <div className="absolute -left-3 -top-4 z-10 rotate-[-4deg] bg-yellow-400 px-3 py-1 font-hand text-lg text-ink-900 shadow-hard-sm">
@@ -39,6 +41,9 @@ export default function VideoPlayer({ episode }: VideoPlayerProps) {
             {episode.duration_label}
           </span>
         )}
+      </div>
+      <div className="mt-4">
+        <ShareMenu title={episode.title} url={shareUrl} />
       </div>
     </div>
   );
