@@ -3,6 +3,7 @@ import type {
   Brand,
   CartItem,
   CartMode,
+  ContentComment,
   ContentItem,
   Product,
   Profile,
@@ -32,8 +33,26 @@ export async function uploadImage(ownerId: string, file: File): Promise<string> 
   return supabase.storage.from(UPLOAD_BUCKET).getPublicUrl(path).data.publicUrl;
 }
 
-const FONT_EXTENSIONS = ['woff2', 'woff', 'ttf', 'otf'];
+export const FONT_EXTENSIONS = ['woff2', 'woff', 'ttf', 'otf'];
 export const MAX_FONT_BYTES = 3 * 1024 * 1024;
+
+const DOCUMENT_EXTENSIONS = ['pdf', 'doc', 'docx', 'odt', 'txt', 'md', 'epub'];
+export const MAX_DOCUMENT_BYTES = 20 * 1024 * 1024;
+
+export async function uploadDocument(ownerId: string, file: File): Promise<string> {
+  const extension = file.name.split('.').pop()?.toLowerCase() ?? '';
+  if (!DOCUMENT_EXTENSIONS.includes(extension)) {
+    throw new Error('Sólo se admiten documentos .pdf, .doc, .docx, .odt, .txt, .md o .epub.');
+  }
+  if (file.size > MAX_DOCUMENT_BYTES) throw new Error('El documento supera los 20 MB.');
+  const path = `${ownerId}/documents/${crypto.randomUUID()}.${extension}`;
+  const { error } = await supabase.storage.from(UPLOAD_BUCKET).upload(path, file, {
+    contentType: file.type || 'application/octet-stream',
+    cacheControl: '3600',
+  });
+  assertNoError(error, 'No se pudo subir el documento');
+  return supabase.storage.from(UPLOAD_BUCKET).getPublicUrl(path).data.publicUrl;
+}
 
 export async function uploadFont(ownerId: string, file: File): Promise<string> {
   const extension = file.name.split('.').pop()?.toLowerCase() ?? '';
@@ -225,11 +244,39 @@ export async function fetchContent(): Promise<ContentItem[]> {
   const { data, error } = await supabase
     .from('content_items')
     .select(
-      'id, kind, slug, title, subtitle, excerpt, body, category, image_url, video_url, duration_label, episode_number, featured, published_at'
+      'id, kind, slug, title, subtitle, excerpt, body, blocks, document_url, category, image_url, video_url, duration_label, episode_number, featured, published_at'
     )
     .order('published_at', { ascending: false });
   assertNoError(error, 'No se pudo cargar el contenido');
   return (data ?? []) as ContentItem[];
+}
+
+const COMMENT_COLUMNS = 'id, content_id, user_id, body, created_at, author:profiles(display_name, avatar_url)';
+
+export async function fetchComments(contentId: string): Promise<ContentComment[]> {
+  const { data, error } = await supabase
+    .from('content_comments')
+    .select(COMMENT_COLUMNS)
+    .eq('content_id', contentId)
+    .order('created_at', { ascending: true })
+    .limit(200);
+  assertNoError(error, 'No se pudieron cargar los comentarios');
+  return (data ?? []) as unknown as ContentComment[];
+}
+
+export async function createComment(contentId: string, body: string): Promise<ContentComment> {
+  const { data, error } = await supabase
+    .from('content_comments')
+    .insert({ content_id: contentId, body })
+    .select(COMMENT_COLUMNS)
+    .single();
+  assertNoError(error, 'No se pudo publicar el comentario');
+  return data as unknown as ContentComment;
+}
+
+export async function deleteComment(id: string): Promise<void> {
+  const { error } = await supabase.from('content_comments').delete().eq('id', id);
+  assertNoError(error, 'No se pudo borrar el comentario');
 }
 
 const CART_SELECT =

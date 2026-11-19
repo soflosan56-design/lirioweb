@@ -100,6 +100,11 @@ export type CartItem = {
 
 export type ContentKind = 'podcast' | 'article';
 
+export type ArticleBlock =
+  | { type: 'subtitle'; text: string }
+  | { type: 'paragraph'; text: string }
+  | { type: 'image'; url: string; caption: string };
+
 export type ContentItem = {
   id: string;
   kind: ContentKind;
@@ -108,6 +113,8 @@ export type ContentItem = {
   subtitle: string | null;
   excerpt: string | null;
   body: string | null;
+  blocks: ArticleBlock[] | null;
+  document_url: string | null;
   category: string | null;
   image_url: string | null;
   video_url: string | null;
@@ -115,6 +122,15 @@ export type ContentItem = {
   episode_number: number | null;
   featured: boolean;
   published_at: string;
+};
+
+export type ContentComment = {
+  id: string;
+  content_id: string;
+  user_id: string;
+  body: string;
+  created_at: string;
+  author: Pick<Profile, 'display_name' | 'avatar_url'> | null;
 };
 
 export type WardrobeItem = GarmentDetails & {

@@ -1,7 +1,7 @@
 import type { AdminRow, AdminTable } from '@/lib/adminApi';
 import { formatEuros } from '@/lib/format';
 
-export type FieldKind = 'text' | 'textarea' | 'number' | 'euros' | 'select' | 'image' | 'images' | 'checkbox';
+export type FieldKind = 'text' | 'textarea' | 'number' | 'euros' | 'select' | 'image' | 'images' | 'checkbox' | 'blocks' | 'document';
 export type FieldOption = { value: string; label: string };
 export type FieldDef = {
   name: string;
@@ -87,7 +87,7 @@ export function getEntities(brandOptions: FieldOption[]): EntityConfig[] {
       tabLabel: 'Contenidos',
       noun: 'contenido',
       select:
-        'id, kind, slug, title, subtitle, excerpt, body, category, image_url, video_url, duration_label, episode_number, featured, published_at',
+        'id, kind, slug, title, subtitle, excerpt, body, blocks, document_url, category, image_url, video_url, duration_label, episode_number, featured, published_at',
       orderBy: 'published_at',
       ascending: false,
       fields: [
@@ -97,7 +97,9 @@ export function getEntities(brandOptions: FieldOption[]): EntityConfig[] {
         { name: 'subtitle', label: 'Subtítulo', kind: 'text' },
         { name: 'category', label: 'Categoría', kind: 'text' },
         { name: 'excerpt', label: 'Resumen', kind: 'textarea' },
-        { name: 'body', label: 'Texto completo', kind: 'textarea' },
+        { name: 'blocks', label: 'Contenido', kind: 'blocks', hint: 'Solo para artículos. Si lo dejas vacío se usa el texto simple.' },
+        { name: 'body', label: 'Texto simple (opcional)', kind: 'textarea', hint: 'Se usa solo si no estructuras el artículo por bloques.' },
+        { name: 'document_url', label: 'Documento adjunto', kind: 'document' },
         { name: 'image_url', label: 'Imagen', kind: 'image' },
         { name: 'video_url', label: 'Enlace de vídeo', kind: 'text' },
         { name: 'duration_label', label: 'Duración', kind: 'text', hint: 'Por ejemplo: 42 min' },
@@ -123,6 +125,8 @@ export function toFormValues(fields: FieldDef[], row: AdminRow | null): FormValu
     const raw = row?.[field.name];
     if (field.kind === 'checkbox') values[field.name] = raw === true;
     else if (field.kind === 'euros') values[field.name] = typeof raw === 'number' ? (raw / 100).toFixed(2) : '';
+    else if (field.kind === 'blocks') values[field.name] = Array.isArray(raw) ? raw : [];
+    else if (field.kind === 'document') values[field.name] = typeof raw === 'string' ? raw : '';
     else if (field.kind === 'images') values[field.name] = Array.isArray(raw) ? raw.filter((url): url is string => typeof url === 'string') : [];
     else values[field.name] = raw == null ? '' : String(raw);
   }
@@ -149,6 +153,14 @@ export function toPayload(fields: FieldDef[], values: FormValues): Record<string
     const value = values[field.name];
     if (field.kind === 'checkbox') {
       payload[field.name] = value === true;
+      continue;
+    }
+    if (field.kind === 'blocks') {
+      payload[field.name] = Array.isArray(value) ? value : [];
+      continue;
+    }
+    if (field.kind === 'document') {
+      payload[field.name] = typeof value === 'string' && value.trim() !== '' ? value.trim() : null;
       continue;
     }
     if (field.kind === 'images') {
