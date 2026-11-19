@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import Navbar from '@/components/layout/Navbar';
 import HomeCover from '@/components/home/HomeCover';
 import SwapPage from '@/components/swap/SwapPage';
@@ -21,10 +21,12 @@ import { useCart } from '@/hooks/useCart';
 import { useIsAdmin } from '@/hooks/useAdmin';
 import { useSiteSettings } from '@/hooks/useSiteSettings';
 import { useUnreadMessages, markInboxSeen } from '@/hooks/useUnreadMessages';
+import { parseContentHash } from '@/lib/share';
 import type { CartMode, ConversationTarget, Product, Section } from '@/lib/types';
 
 export default function App() {
-  const [section, setSection] = useState<Section>('inicio');
+  const initialSection: Section = parseContentHash(window.location.hash) ? 'contenidos' : 'inicio';
+  const [section, setSection] = useState<Section>(initialSection);
   const [authOpen, setAuthOpen] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
@@ -32,7 +34,6 @@ export default function App() {
   const [conversation, setConversation] = useState<ConversationTarget | null>(null);
   const [toast, setToast] = useState<ToastState | null>(null);
   const [wardrobeOwnerId, setWardrobeOwnerId] = useState<string | null>(null);
-
   const { user, profile, error: accountError, signIn, signUp, signOut, saveProfile } = useAccount();
   const userId = user?.id ?? null;
   const cart = useCart(userId);

@@ -95,10 +95,13 @@ function hasContent(block: ArticleBlock): boolean {
 
 function valuesToBlocks(value: FormValues[string] | undefined): ArticleBlock[] {
   if (!Array.isArray(value)) return [];
-  return value.filter(
-    (block): block is ArticleBlock =>
-      typeof block === 'object' && block !== null && 'type' in (block as Record<string, unknown>)
-  );
+  const blocks: ArticleBlock[] = [];
+  for (const block of value) {
+    if (typeof block === 'object' && block !== null && 'type' in block && 'text' in block) {
+      blocks.push(block as ArticleBlock);
+    }
+  }
+  return blocks;
 }
 
 function DocumentInput({

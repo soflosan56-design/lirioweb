@@ -114,18 +114,28 @@ export default function InstagramStoryButton({ title, subtitle, imageUrl, url }:
       ctx.font = `500 32px var(--font-body, sans-serif)`;
       ctx.fillText(url.replace(/^https?:\/\//, '').slice(0, 60), 80, STORY_HEIGHT - 90);
 
-      // A portapapeles
+      // A imagen
       const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/png'));
       if (!blob) throw new Error('blob');
-      await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
 
+      // Compartir con el menú nativo del dispositivo (Instagram aparece como destino)
+      const file = new File([blob], 'lirio-historia.png', { type: 'image/png' });
+      const nav = navigator as Navigator & { canShare?: (data: ShareData) => boolean };
+      if (nav.canShare?.({ files: [file] })) {
+        await navigator.share({ files: [file], title, text: title });
+        return;
+      }
+
+      // Sin menú nativo: copiar imagen y abrir Instagram
+      await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
       window.open('https://www.instagram.com/', '_blank');
       window.alert(
         'Imagen de la historia copiada. Abre Instagram, crea una historia nueva y pega la imagen (mantén pulsado y pega, o toca "Pegar" si aparece).'
       );
-    } catch {
+    } catch (err) {
+      if (err instanceof DOMException && err.name === 'AbortError') return;
       window.alert(
-        'No se pudo copiar la imagen automáticamente. Tu navegador o dispositivo puede bloquearlo: haz una captura de pantalla del artículo y compártela en tu historia.'
+        'No se pudo preparar la imagen para la historia. Tu navegador o dispositivo puede bloquearlo: haz una captura de pantalla del artículo y compártela en tu historia.'
       );
     } finally {
       setBusy(false);
