@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { FileDown, Loader2, Send, Trash2 } from 'lucide-react';
 import ShareMenu from '@/components/content/ShareMenu';
+import InstagramStoryButton from '@/components/content/InstagramStoryButton';
 import { contentShareUrl } from '@/lib/share';
 import type { ArticleBlock, ContentComment, ContentItem } from '@/lib/types';
 import { createComment, deleteComment, fetchComments } from '@/lib/api';
@@ -211,6 +212,12 @@ export default function ArticleReader({ article, shareUrl, onClose }: ArticleRea
             </a>
           )}
           <ShareMenu title={article.title} url={shareUrl} />
+          <InstagramStoryButton
+            title={article.title}
+            subtitle={article.subtitle}
+            imageUrl={article.image_url}
+            url={shareUrl}
+          />
           <button
             type="button"
             onClick={onClose}
